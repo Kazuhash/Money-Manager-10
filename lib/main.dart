@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
+import 'home_Page/total_saldo_widget.dart';
 
 
 import 'history_page.dart';
@@ -17,11 +18,22 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       locale: DevicePreview.locale(context),
       builder: (context, child) => DevicePreview.appBuilder(context, child),
-      title: 'Mondefy Clone',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-
-      home: const TransactionHistoryPage(),
+      title: 'Money Manager',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Money Manager Home'),
+        ),
+        body: const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: TotalSaldoCard(
+            totalIncome: 5750000,
+            totalExpense: 335000,
+          ),
+        ),
+      ),
     );
   }
 }
