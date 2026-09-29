@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
-import 'home_Page/total_saldo_widget.dart';
-
-
-import 'history_page.dart';
+import 'home_Page/monefy_home.dart';
 
 void main() => runApp(
-  DevicePreview(enabled: !kReleaseMode, builder: (context) => const MyApp()),
+  DevicePreview(
+    enabled: !kReleaseMode,
+    builder: (context) => const MyApp(),
+  ),
 );
 
 class MyApp extends StatelessWidget {
@@ -16,24 +16,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       locale: DevicePreview.locale(context),
-      builder: (context, child) => DevicePreview.appBuilder(context, child),
-      title: 'Money Manager',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Money Manager Home'),
-        ),
-        body: const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: TotalSaldoCard(
-            totalIncome: 5750000,
-            totalExpense: 335000,
-          ),
-        ),
-      ),
+      builder: DevicePreview.appBuilder,
+      home: const MonefyHome(),
     );
   }
 }
