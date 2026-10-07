@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 //rancangan awal
+//menggunakan data dummy
 // membuat fitur riwayat transaksi dengan kategori masuk dan keluar(d0ne)
 //membuat pengelompokan otomatis riwayat transaksi per tanggal (done)
 //membuat fitur hapus riwaayt ransaksi dengan digeser ke kiri (done)
