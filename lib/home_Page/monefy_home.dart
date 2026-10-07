@@ -248,7 +248,7 @@ class _MonefyHomeState extends State<MonefyHome> {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: warna.withOpacity(0.2),
+          backgroundColor: warna.withValues(alpha: 0.2),
           child: Icon(masuk ? Icons.arrow_downward : Icons.arrow_upward,
               color: warna),
         ),
