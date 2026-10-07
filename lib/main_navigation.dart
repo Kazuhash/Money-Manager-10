@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_Page/monefy_home.dart';
-import 'history/history_page.dart';
+import 'history_page.dart';
+import 'settings_page/settings_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -12,10 +13,10 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    MonefyHome(),
-    TransactionHistoryPage(),
-    Center(child: Text('Settings (coming soon)')),
+  final List<Widget> _pages = [
+    const MonefyHome(),
+    const TransactionHistoryPage(),
+    const SettingsPage(),
   ];
 
   @override
