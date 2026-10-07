@@ -56,7 +56,7 @@ class _FormTransaksiState extends State<FormTransaksi> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<String>(
-          value: _kategori,
+          initialValue: _kategori,
           decoration: const InputDecoration(labelText: 'Kategori'),
           items: widget.kategori
               .map((k) => DropdownMenuItem(value: k, child: Text(k)))
