@@ -71,6 +71,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 
   String _selectedFilter = 'Semua';
   String _query = '';
+  DateTimeRange? _range;
 
   List<Transaction> get _visibleTransactions {
     final q = _query.trim().toLowerCase();
@@ -78,28 +79,45 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
       if (_selectedFilter == 'Masuk' && !tx.isIncome) return false;
       if (_selectedFilter == 'Keluar' && tx.isIncome) return false;
       if (q.isNotEmpty && !tx.title.toLowerCase().contains(q)) return false;
+      if (_range != null) {
+        final hari = DateTime(tx.date.year, tx.date.month, tx.date.day);
+        if (hari.isBefore(_range!.start) || hari.isAfter(_range!.end)) {
+          return false;
+        }
+      }
       return true;
     }).toList();
     hasil.sort((a, b) => b.date.compareTo(a.date));
     return hasil;
   }
 
- void _hapus(Transaction tx) {
-  final index = _transactions.indexWhere((item) => item.id == tx.id);
-  setState(() => _transactions.removeAt(index));
-
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(
-        content: Text('${tx.title} berhasil dihapus'),
-        action: SnackBarAction(
-          label: 'Urungkan',
-          onPressed: () => setState(() => _transactions.insert(index, tx)),
-        ),
-      ),
+  Future<void> _pilihRentang() async {
+    final now = DateTime.now();
+    final hasil = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year - 2),
+      lastDate: now,
+      initialDateRange: _range,
     );
-}
+    if (hasil != null) setState(() => _range = hasil);
+  }
+
+  void _hapus(Transaction tx) {
+    final index = _transactions.indexWhere((item) => item.id == tx.id);
+    setState(() => _transactions.removeAt(index));
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${tx.title} berhasil dihapus'),
+          action: SnackBarAction(
+            label: 'Urungkan',
+            onPressed: () => setState(() => _transactions.insert(index, tx)),
+          ),
+        ),
+      );
+  }
 
   void _showSnack(String pesan) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -128,7 +146,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.date_range),
-            onPressed: () => _showSnack('Fitur Kalender Rentang Tanggal Terbuka'),
+            onPressed: _pilihRentang,
           ),
         ],
       ),
