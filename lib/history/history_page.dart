@@ -84,12 +84,22 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     return hasil;
   }
 
-  void _hapus(Transaction tx) {
-    setState(() => _transactions.removeWhere((item) => item.id == tx.id));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${tx.title} berhasil dihapus')),
+ void _hapus(Transaction tx) {
+  final index = _transactions.indexWhere((item) => item.id == tx.id);
+  setState(() => _transactions.removeAt(index));
+
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text('${tx.title} berhasil dihapus'),
+        action: SnackBarAction(
+          label: 'Urungkan',
+          onPressed: () => setState(() => _transactions.insert(index, tx)),
+        ),
+      ),
     );
-  }
+}
 
   void _showSnack(String pesan) {
     ScaffoldMessenger.of(context).showSnackBar(
