@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_Page/monefy_home.dart';
-import 'history_page.dart';
+import 'history/history_page.dart';
 import 'settings_page/settings_page.dart';
 
 class MainNavigation extends StatefulWidget {
