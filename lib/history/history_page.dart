@@ -7,6 +7,7 @@ import 'widgets/filters.dart';
 import 'widgets/tile.dart';
 import 'widgets/summary_card.dart';
 import 'widgets/search.dart';
+import 'widgets/date_range.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
@@ -159,6 +160,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           HistorySearchField(
             onChanged: (v) => setState(() => _query = v),
           ),
+        if (_range != null)
+            DateRangeChip(
+              range: _range!,
+              onClear: () => setState(() => _range = null),
+            ),
           FilterChipsRow(
             filters: _filters,
             selected: _selectedFilter,
