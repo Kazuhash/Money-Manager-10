@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'settings_page/app_setting.dart';
 import 'settings_page/app_theme.dart';
 import 'main_navigation.dart';
+import 'package:flutter/foundation.dart';
 
 void main() => runApp(
   DevicePreview(
