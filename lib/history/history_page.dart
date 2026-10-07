@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/transaction_model.dart';
 import 'date.dart';
+import 'transaction_store.dart';
 import 'widgets/date_header.dart';
 import 'widgets/empty_history.dart';
 import 'widgets/filters.dart';
@@ -20,60 +21,80 @@ class TransactionHistoryPage extends StatefulWidget {
 class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   static const _filters = ['Semua', 'Masuk', 'Keluar'];
 
-  late final List<Transaction> _transactions = [
-    Transaction(
-      id: '1',
-      title: 'Gaji Bulanan',
-      amount: 5000000,
-      date: DateTime.now(),
-      category: 'Gaji',
-      isIncome: true,
-    ),
-    Transaction(
-      id: '2',
-      title: 'Makan Siang Nasi Padang',
-      amount: 25000,
-      date: DateTime.now(),
-      category: 'Makanan',
-      isIncome: false,
-    ),
-    Transaction(
-      id: '3',
-      title: 'Beli Bensin',
-      amount: 50000,
-      date: DateTime.now(),
-      category: 'Transport',
-      isIncome: false,
-    ),
-    Transaction(
-      id: '4',
-      title: 'Token Listrik Kost',
-      amount: 100000,
-      date: DateTime.now().subtract(const Duration(days: 1)),
-      category: 'Tagihan',
-      isIncome: false,
-    ),
-    Transaction(
-      id: '5',
-      title: 'Transfer dari mom',
-      amount: 500000,
-      date: DateTime.now().subtract(const Duration(days: 1)),
-      category: 'Lainnya',
-      isIncome: true,
-    ),
-    Transaction(
-      id: '6',
-      title: 'Belanja monthly Alfamart',
-      amount: 150000,
-      date: DateTime.now().subtract(const Duration(days: 3)),
-      category: 'Belanja',
-      isIncome: false,
-    ),
-  ];
+  List<Transaction> _transactions = [];
+  bool _loading = true;
 
   String _selectedFilter = 'Semua';
   String _query = '';
   DateTimeRange? _range;
+
+  @override
+  void initState() {
+    super.initState();
+    _muat();
+  }
+
+  Future<void> _muat() async {
+    final saved = await TransactionStore.load();
+    if (!mounted) return;
+    setState(() {
+      _transactions = saved ?? _seed();
+      _loading = false;
+    });
+  }
+
+  void _simpanData() => TransactionStore.save(_transactions);
+
+  List<Transaction> _seed() => [
+        Transaction(
+          id: '1',
+          title: 'Gaji Bulanan',
+          amount: 5000000,
+          date: DateTime.now(),
+          category: 'Gaji',
+          isIncome: true,
+        ),
+        Transaction(
+          id: '2',
+          title: 'Makan Siang Nasi Padang',
+          amount: 25000,
+          date: DateTime.now(),
+          category: 'Makanan',
+          isIncome: false,
+        ),
+        Transaction(
+          id: '3',
+          title: 'Beli Bensin',
+          amount: 50000,
+          date: DateTime.now(),
+          category: 'Transport',
+          isIncome: false,
+        ),
+        Transaction(
+          id: '4',
+          title: 'Token Listrik Kost',
+          amount: 100000,
+          date: DateTime.now().subtract(const Duration(days: 1)),
+          category: 'Tagihan',
+          isIncome: false,
+        ),
+        Transaction(
+          id: '5',
+          title: 'Transfer dari mom',
+          amount: 500000,
+          date: DateTime.now().subtract(const Duration(days: 1)),
+          category: 'Lainnya',
+          isIncome: true,
+        ),
+        Transaction(
+          id: '6',
+          title: 'Belanja monthly Alfamart',
+          amount: 150000,
+          date: DateTime.now().subtract(const Duration(days: 3)),
+          category: 'Belanja',
+          isIncome: false,
+        ),
+      ];
 
   List<Transaction> get _visibleTransactions {
     final q = _query.trim().toLowerCase();
@@ -108,6 +129,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     final baru = await showTransactionForm(context);
     if (baru == null) return;
     setState(() => _transactions.add(baru));
+    _simpanData();
     _showSnack('${baru.title} berhasil ditambahkan');
   }
 
@@ -117,12 +139,14 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     final index = _transactions.indexWhere((item) => item.id == lama.id);
     if (index == -1) return;
     setState(() => _transactions[index] = hasil);
+    _simpanData();
     _showSnack('${hasil.title} berhasil diperbarui');
   }
 
   void _hapus(Transaction tx) {
     final index = _transactions.indexWhere((item) => item.id == tx.id);
     setState(() => _transactions.removeAt(index));
+    _simpanData();
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -131,7 +155,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           content: Text('${tx.title} berhasil dihapus'),
           action: SnackBarAction(
             label: 'Urungkan',
-            onPressed: () => setState(() => _transactions.insert(index, tx)),
+            onPressed: () {
+              setState(() => _transactions.insert(index, tx));
+              _simpanData();
+            },
           ),
         ),
       );
@@ -145,6 +172,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final data = _visibleTransactions;
     final totalMasuk = data
         .where((t) => t.isIncome)

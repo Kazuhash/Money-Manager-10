@@ -10,8 +10,7 @@ const kategoriList = [
   'Lainnya',
 ];
 
-/// Menampilkan form di bottom sheet. Mengembalikan Transaction
-/// kalau disimpan, atau null kalau ditutup.
+
 Future<Transaction?> showTransactionForm(
   BuildContext context, {
   Transaction? initial,
