@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../home_Page/transaksi.dart' show rupiah;
-import '../../models/transaction_model.dart';
+import '../../../home_Page/transaksi.dart' show rupiah;
+import '../../../models/transaction_model.dart';
 
 class TransactionTile extends StatelessWidget {
   final Transaction transaction;

@@ -1,28 +1,11 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD:lib/history/history_page.dart
-import '../models/transaction_model.dart';
+import '../../models/transaction_model.dart';
 import 'date.dart';
 import 'widgets/date_header.dart';
 import 'widgets/empty_history.dart';
 import 'widgets/filters.dart';
 import 'widgets/tile.dart';
 
-=======
-//rancangan awal
-// membuat fitur riwayat transaksi dengan kategori masuk dan keluar(d0ne)
-//membuat pengelompokan otomatis riwayat transaksi per tanggal (done)
-//membuat fitur hapus riwaayt ransaksi dengan digeser ke kiri (done)
-//membuat fitur filter riwayat dalam rentang tanggal (on progress)
-//membuat fitur edit riwayat transaksi (on progress)
-//membuat fitur tambah riwayat transaksi (on progress)
-class DummyTransaction {
-  final String id;
-  final String title;
-  final String category;
-  final double amount;
-  final bool isIncome;
-  final String date;
->>>>>>> parent of 54c4e6f (make folder history and move history_page.dart to it):lib/history_page.dart
 
 
 class TransactionHistoryPage extends StatefulWidget {
