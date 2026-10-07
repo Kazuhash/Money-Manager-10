@@ -5,6 +5,7 @@ import 'widgets/date_header.dart';
 import 'widgets/empty_history.dart';
 import 'widgets/filters.dart';
 import 'widgets/tile.dart';
+import 'widgets/summary_card.dart';
 
 
 
@@ -97,6 +98,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   @override
   Widget build(BuildContext context) {
     final data = _visibleTransactions;
+    final totalMasuk = data
+      .where((t) => t.isIncome)
+      .fold<double>(0, (s, t) => s + t.amount);
+    final totalKeluar = data
+      .where((t) => !t.isIncome)
+      .fold<double>(0, (s, t) => s + t.amount);
 
     return Scaffold(
       appBar: AppBar(
@@ -115,6 +122,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
       ),
       body: Column(
         children: [
+          HistorySummaryCard(
+            totalMasuk: totalMasuk,
+            totalKeluar: totalKeluar,
+          ),
           FilterChipsRow(
             filters: _filters,
             selected: _selectedFilter,
