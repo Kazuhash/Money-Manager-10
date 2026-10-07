@@ -8,6 +8,7 @@ import 'widgets/tile.dart';
 import 'widgets/summary_card.dart';
 import 'widgets/search.dart';
 import 'widgets/date_range.dart';
+import 'widgets/transaction_form.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
@@ -103,6 +104,22 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     if (hasil != null) setState(() => _range = hasil);
   }
 
+  Future<void> _tambah() async {
+    final baru = await showTransactionForm(context);
+    if (baru == null) return;
+    setState(() => _transactions.add(baru));
+    _showSnack('${baru.title} berhasil ditambahkan');
+  }
+
+  Future<void> _edit(Transaction lama) async {
+    final hasil = await showTransactionForm(context, initial: lama);
+    if (hasil == null) return;
+    final index = _transactions.indexWhere((item) => item.id == lama.id);
+    if (index == -1) return;
+    setState(() => _transactions[index] = hasil);
+    _showSnack('${hasil.title} berhasil diperbarui');
+  }
+
   void _hapus(Transaction tx) {
     final index = _transactions.indexWhere((item) => item.id == tx.id);
     setState(() => _transactions.removeAt(index));
@@ -121,9 +138,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   }
 
   void _showSnack(String pesan) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(pesan)),
-    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(pesan)));
   }
 
   @override
@@ -151,6 +168,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _tambah,
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      ),
       body: Column(
         children: [
           HistorySummaryCard(
@@ -160,7 +183,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           HistorySearchField(
             onChanged: (v) => setState(() => _query = v),
           ),
-        if (_range != null)
+          if (_range != null)
             DateRangeChip(
               range: _range!,
               onClear: () => setState(() => _range = null),
@@ -197,9 +220,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                             onDismissed: (_) => _hapus(tx),
                             child: TransactionTile(
                               transaction: tx,
-                              onTap: () => _showSnack(
-                                'Membuka Form Edit untuk: ${tx.title}',
-                              ),
+                              onTap: () => _edit(tx),
                             ),
                           ),
                         ],
