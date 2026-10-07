@@ -23,8 +23,8 @@ class HistorySummaryCard extends StatelessWidget {
         child: Column(
           children: [
             const Text('Selisih', style: TextStyle(color: Colors.white70)),
-            Text(
-              rupiah(selisih),
+            _AnimatedRupiah(
+              value: selisih,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 26,
@@ -35,15 +35,43 @@ class HistorySummaryCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text('Masuk: ${rupiah(totalMasuk)}',
-                    style: const TextStyle(color: Colors.white)),
-                Text('Keluar: ${rupiah(totalKeluar)}',
-                    style: const TextStyle(color: Colors.white)),
+                _AnimatedRupiah(
+                  value: totalMasuk,
+                  prefix: 'Masuk: ',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                _AnimatedRupiah(
+                  value: totalKeluar,
+                  prefix: 'Keluar: ',
+                  style: const TextStyle(color: Colors.white),
+                ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _AnimatedRupiah extends StatelessWidget {
+  final double value;
+  final String prefix;
+  final TextStyle style;
+
+  const _AnimatedRupiah({
+    required this.value,
+    required this.style,
+    this.prefix = '',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: value),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOut,
+      builder: (context, v, _) => Text('$prefix${rupiah(v)}', style: style),
     );
   }
 }
