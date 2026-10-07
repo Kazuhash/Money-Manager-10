@@ -2,6 +2,23 @@ import 'package:flutter/material.dart';
 import '../../../home_Page/transaksi.dart' show rupiah;
 import '../../../models/transaction_model.dart';
 
+IconData ikonKategori(String kategori) {
+  switch (kategori) {
+    case 'Gaji':
+      return Icons.payments;
+    case 'Makanan':
+      return Icons.restaurant;
+    case 'Transport':
+      return Icons.directions_car;
+    case 'Tagihan':
+      return Icons.receipt_long;
+    case 'Belanja':
+      return Icons.shopping_bag;
+    default:
+      return Icons.category;
+  }
+}
+
 class TransactionTile extends StatelessWidget {
   final Transaction transaction;
   final VoidCallback? onTap;
@@ -16,10 +33,7 @@ class TransactionTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: warna.withAlpha(51),
-        child: Icon(
-          tx.isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-          color: warna,
-        ),
+        child: Icon(ikonKategori(tx.category), color: warna),
       ),
       title: Text(
         tx.title,
