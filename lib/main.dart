@@ -1,11 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:provider/provider.dart';
-import 'home_Page/monefy_home.dart';
 import 'settings_page/app_setting.dart';
 import 'settings_page/app_theme.dart';
-import 'settings_page/settings_page.dart';
+import 'main_navigation.dart';
 
 void main() => runApp(
   DevicePreview(
@@ -29,7 +27,7 @@ class MyApp extends StatelessWidget {
       builder: DevicePreview.appBuilder,
       darkTheme: AppTheme.dark,
       themeMode: settings.themeMode,
-      home: const SettingsPage(),
+      home: const MainNavigation(),
     );
   }
 }
