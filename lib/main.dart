@@ -6,7 +6,10 @@ import 'package:device_preview/device_preview.dart';
 import 'history/history_page.dart';
 
 void main() => runApp(
-  DevicePreview(enabled: !kReleaseMode, builder: (context) => const MyApp()),
+  DevicePreview(
+    enabled: !kReleaseMode,
+    builder: (context) => const MyApp(),
+  ),
 );
 
 class MyApp extends StatelessWidget {
@@ -15,13 +18,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       locale: DevicePreview.locale(context),
-      builder: (context, child) => DevicePreview.appBuilder(context, child),
-      title: 'Mondefy Clone',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-
-      home: const TransactionHistoryPage(),
+      builder: DevicePreview.appBuilder,
+      home: const MonefyHome(),
     );
   }
 }
