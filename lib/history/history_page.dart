@@ -6,8 +6,7 @@ import 'widgets/empty_history.dart';
 import 'widgets/filters.dart';
 import 'widgets/tile.dart';
 import 'widgets/summary_card.dart';
-
-
+import 'widgets/search.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
@@ -71,11 +70,14 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   ];
 
   String _selectedFilter = 'Semua';
+  String _query = '';
 
   List<Transaction> get _visibleTransactions {
+    final q = _query.trim().toLowerCase();
     final hasil = _transactions.where((tx) {
-      if (_selectedFilter == 'Masuk') return tx.isIncome;
-      if (_selectedFilter == 'Keluar') return !tx.isIncome;
+      if (_selectedFilter == 'Masuk' && !tx.isIncome) return false;
+      if (_selectedFilter == 'Keluar' && tx.isIncome) return false;
+      if (q.isNotEmpty && !tx.title.toLowerCase().contains(q)) return false;
       return true;
     }).toList();
     hasil.sort((a, b) => b.date.compareTo(a.date));
@@ -99,11 +101,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   Widget build(BuildContext context) {
     final data = _visibleTransactions;
     final totalMasuk = data
-      .where((t) => t.isIncome)
-      .fold<double>(0, (s, t) => s + t.amount);
+        .where((t) => t.isIncome)
+        .fold<double>(0, (s, t) => s + t.amount);
     final totalKeluar = data
-      .where((t) => !t.isIncome)
-      .fold<double>(0, (s, t) => s + t.amount);
+        .where((t) => !t.isIncome)
+        .fold<double>(0, (s, t) => s + t.amount);
 
     return Scaffold(
       appBar: AppBar(
@@ -125,6 +127,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           HistorySummaryCard(
             totalMasuk: totalMasuk,
             totalKeluar: totalKeluar,
+          ),
+          HistorySearchField(
+            onChanged: (v) => setState(() => _query = v),
           ),
           FilterChipsRow(
             filters: _filters,
