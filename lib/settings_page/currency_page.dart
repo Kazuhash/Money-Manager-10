@@ -23,7 +23,7 @@ class CurrencyPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Mata Uang'),
         centerTitle: true,
-        flexibleSpace: const HologramAppBarBackground(),
+        flexibleSpace: const HologramGradientBackground(),
       ),
       body: ListView(
         children: _currencies.map((c) {

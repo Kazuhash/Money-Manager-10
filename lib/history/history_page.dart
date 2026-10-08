@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/transaction_model.dart';
 import '../models/transaction_repo.dart';
+import '../settings_page/app_theme.dart';
 import 'date.dart';
 import 'widgets/date_header.dart';
 import 'widgets/empty_history.dart';
@@ -111,6 +113,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           'Monefy',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        flexibleSpace: const HologramGradientBackground(
+          lightModeGradient: AppTheme.hologramGradient,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.date_range),
@@ -124,13 +129,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
       ),
       body: Column(
         children: [
-          HistorySummaryCard(
-            totalMasuk: totalMasuk,
-            totalKeluar: totalKeluar,
-          ),
-          HistorySearchField(
-            onChanged: (v) => setState(() => _query = v),
-          ),
+          HistorySummaryCard(totalMasuk: totalMasuk, totalKeluar: totalKeluar),
+          HistorySearchField(onChanged: (v) => setState(() => _query = v)),
           if (_range != null)
             DateRangeChip(
               range: _range!,
@@ -150,7 +150,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                     itemBuilder: (context, index) {
                       final tx = data[index];
                       final showHeader =
-                          index == 0 || !isSameDay(data[index - 1].date, tx.date);
+                          index == 0 ||
+                          !isSameDay(data[index - 1].date, tx.date);
 
                       return StaggeredItem(
                         index: index,
@@ -166,8 +167,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                 color: Colors.red,
                                 alignment: Alignment.centerRight,
                                 padding: const EdgeInsets.only(right: 20.0),
-                                child: const Icon(Icons.delete,
-                                    color: Colors.white),
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                ),
                               ),
                               onDismissed: (_) => _hapus(tx),
                               child: TransactionTile(

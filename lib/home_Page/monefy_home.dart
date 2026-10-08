@@ -6,6 +6,7 @@ import 'transaksi.dart';
 import 'package:provider/provider.dart';
 import '../models/transaction_model.dart';
 import '../models/transaction_repo.dart';
+import '../settings_page/app_theme.dart';
 
 enum PeriodeFilter { hariIni, mingguIni, bulanIni }
 
@@ -106,6 +107,9 @@ Future<void> _bukaHalaman(Widget page) async {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Monefy'),
+        flexibleSpace: const HologramGradientBackground(
+          lightModeGradient: AppTheme.hologramGradient,
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Row(

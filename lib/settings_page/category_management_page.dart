@@ -11,7 +11,7 @@ class CategoryManagementPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Kelola Kategori'),
         centerTitle: true,
-        flexibleSpace: const HologramAppBarBackground(),
+        flexibleSpace: const HologramGradientBackground(),
       ),
       body: SingleChildScrollView(
         child: KelolaKategoriSection(
