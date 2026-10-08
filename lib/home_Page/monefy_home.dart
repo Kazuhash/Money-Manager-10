@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'tambah_pemasukan_page.dart';
 import 'tambah_pengeluaran_page.dart';
 import 'transaksi.dart';
+import 'package:provider/provider.dart';
+import '../models/transaction_model.dart';
+import '../models/transaction_repo.dart';
 
 enum PeriodeFilter { hariIni, mingguIni, bulanIni }
 
@@ -19,27 +22,19 @@ class _MonefyHomeState extends State<MonefyHome> {
 
   PeriodeFilter _periode = PeriodeFilter.bulanIni;
 
-  // Data contoh. Hapus atau ganti dengan data dari models/database kalau sudah ada.
-  final List<Transaksi> _semua = [
-    Transaksi(
-      judul: 'Gaji',
-      jumlah: 5750000,
-      tipe: TipeTransaksi.pemasukan,
-      tanggal: DateTime.now(),
-    ),
-    Transaksi(
-      judul: 'Makanan',
-      jumlah: 35000,
-      tipe: TipeTransaksi.pengeluaran,
-      tanggal: DateTime.now(),
-    ),
-    Transaksi(
-      judul: 'Transportasi',
-      jumlah: 300000,
-      tipe: TipeTransaksi.pengeluaran,
-      tanggal: DateTime.now(),
-    ),
-  ];
+List<Transaksi> get _semua => context
+    .watch<TransactionRepository>()
+    .items
+    .map((t) => Transaksi(
+          judul: t.title,
+          jumlah: t.amount,
+          tipe: t.isIncome
+              ? TipeTransaksi.pemasukan
+              : TipeTransaksi.pengeluaran,
+          tanggal: t.date,
+          kategori: t.category,
+        ))
+    .toList();
 
   double get _totalSaldo => _semua.fold(
         0.0,
@@ -83,16 +78,24 @@ class _MonefyHomeState extends State<MonefyHome> {
     }
   }
 
-  // Buka halaman plus/minus, lalu terima transaksi yang disimpan
-  Future<void> _bukaHalaman(Widget page) async {
-    final hasil = await Navigator.push<Transaksi>(
-      context,
-      MaterialPageRoute(builder: (_) => page),
-    );
-    if (hasil != null && mounted) {
-      setState(() => _semua.add(hasil));
-    }
+Future<void> _bukaHalaman(Widget page) async {
+  final hasil = await Navigator.push<Transaksi>(
+    context,
+    MaterialPageRoute(builder: (_) => page),
+  );
+  if (hasil != null && mounted) {
+    context.read<TransactionRepository>().add(
+          Transaction(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            title: hasil.judul,
+            amount: hasil.jumlah,
+            date: hasil.tanggal,
+            category: hasil.kategori,
+            isIncome: hasil.tipe == TipeTransaksi.pemasukan,
+          ),
+        );
   }
+}
 
   @override
   Widget build(BuildContext context) {
