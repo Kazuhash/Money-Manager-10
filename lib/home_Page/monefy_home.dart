@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'tambah_pemasukan_page.dart';
-import 'tambah_pengeluaran_page.dart';
+import 'package:provider/provider.dart';
+import '../models/transaction_model.dart';
+import '../provider/transaction_provider.dart';
+import '../transaction_page/add_transaction_page.dart';
 import 'transaksi.dart';
 
 enum PeriodeFilter { hariIni, mingguIni, bulanIni }
@@ -19,34 +21,6 @@ class _MonefyHomeState extends State<MonefyHome> {
 
   PeriodeFilter _periode = PeriodeFilter.bulanIni;
 
-  // Data contoh. Hapus atau ganti dengan data dari models/database kalau sudah ada.
-  final List<Transaksi> _semua = [
-    Transaksi(
-      judul: 'Gaji',
-      jumlah: 5750000,
-      tipe: TipeTransaksi.pemasukan,
-      tanggal: DateTime.now(),
-    ),
-    Transaksi(
-      judul: 'Makanan',
-      jumlah: 35000,
-      tipe: TipeTransaksi.pengeluaran,
-      tanggal: DateTime.now(),
-    ),
-    Transaksi(
-      judul: 'Transportasi',
-      jumlah: 300000,
-      tipe: TipeTransaksi.pengeluaran,
-      tanggal: DateTime.now(),
-    ),
-  ];
-
-  double get _totalSaldo => _semua.fold(
-        0.0,
-        (sum, t) =>
-            sum + (t.tipe == TipeTransaksi.pemasukan ? t.jumlah : -t.jumlah),
-      );
-
   bool _masukPeriode(DateTime t) {
     final now = DateTime.now();
     final awalHari = DateTime(now.year, now.month, now.day);
@@ -62,15 +36,15 @@ class _MonefyHomeState extends State<MonefyHome> {
     }
   }
 
-  List<Transaksi> get _terfilter {
-    final list = _semua.where((t) => _masukPeriode(t.tanggal)).toList();
-    list.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+  List<Transaction> _terfilter(List<Transaction> semua) {
+    final list = semua.where((t) => _masukPeriode(t.date)).toList();
+    list.sort((a, b) => b.date.compareTo(a.date));
     return list;
   }
 
-  double _total(List<Transaksi> list, TipeTransaksi tipe) => list
-      .where((t) => t.tipe == tipe)
-      .fold(0.0, (sum, t) => sum + t.jumlah);
+  double _total(List<Transaction> list, {required bool income}) => list
+      .where((t) => t.isIncome == income)
+      .fold(0.0, (sum, t) => sum + t.amount);
 
   String get _labelPeriode {
     switch (_periode) {
@@ -83,22 +57,21 @@ class _MonefyHomeState extends State<MonefyHome> {
     }
   }
 
-  // Buka halaman plus/minus, lalu terima transaksi yang disimpan
-  Future<void> _bukaHalaman(Widget page) async {
-    final hasil = await Navigator.push<Transaksi>(
+  void _bukaHalaman({required bool income}) {
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => page),
+      MaterialPageRoute(
+        builder: (_) => AddTransactionPage(initialIsIncome: income),
+      ),
     );
-    if (hasil != null && mounted) {
-      setState(() => _semua.add(hasil));
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final data = _terfilter;
-    final income = _total(data, TipeTransaksi.pemasukan);
-    final expense = _total(data, TipeTransaksi.pengeluaran);
+    final provider = context.watch<TransactionProvider>();
+    final data = _terfilter(provider.transactions);
+    final income = _total(data, income: true);
+    final expense = _total(data, income: false);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0FFF5),
@@ -115,7 +88,7 @@ class _MonefyHomeState extends State<MonefyHome> {
             heroTag: 'minus',
             backgroundColor: red,
             foregroundColor: Colors.white,
-            onPressed: () => _bukaHalaman(const TambahPengeluaranPage()),
+            onPressed: () => _bukaHalaman(income: false),
             child: const Icon(Icons.remove),
           ),
           const SizedBox(width: 40),
@@ -123,7 +96,7 @@ class _MonefyHomeState extends State<MonefyHome> {
             heroTag: 'plus',
             backgroundColor: green,
             foregroundColor: Colors.white,
-            onPressed: () => _bukaHalaman(const TambahPemasukanPage()),
+            onPressed: () => _bukaHalaman(income: true),
             child: const Icon(Icons.add),
           ),
         ],
@@ -141,7 +114,7 @@ class _MonefyHomeState extends State<MonefyHome> {
                       style: TextStyle(color: Colors.grey)),
                   const SizedBox(height: 4),
                   Text(
-                    rupiah(_totalSaldo),
+                    rupiah(provider.balance),
                     style: const TextStyle(
                         fontSize: 28, fontWeight: FontWeight.bold),
                   ),
@@ -242,8 +215,8 @@ class _MonefyHomeState extends State<MonefyHome> {
         ],
       );
 
-  Widget _itemTransaksi(Transaksi t) {
-    final masuk = t.tipe == TipeTransaksi.pemasukan;
+  Widget _itemTransaksi(Transaction t) {
+    final masuk = t.isIncome;
     final warna = masuk ? green : red;
     return Card(
       child: ListTile(
@@ -252,10 +225,10 @@ class _MonefyHomeState extends State<MonefyHome> {
           child: Icon(masuk ? Icons.arrow_downward : Icons.arrow_upward,
               color: warna),
         ),
-        title: Text(t.judul),
-        subtitle: Text(tanggalPendek(t.tanggal)),
+        title: Text(t.title),
+        subtitle: Text(tanggalPendek(t.date)),
         trailing: Text(
-          '${masuk ? '+' : '-'}${rupiah(t.jumlah)}',
+          '${masuk ? '+' : '-'}${rupiah(t.amount)}',
           style: TextStyle(color: warna, fontWeight: FontWeight.bold),
         ),
       ),
