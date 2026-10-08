@@ -30,6 +30,7 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: HologramGradientBackground(
         lightModeGradient: AppTheme.hologramGradient,
         child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
           elevation: 0,
           selectedItemColor: isDark

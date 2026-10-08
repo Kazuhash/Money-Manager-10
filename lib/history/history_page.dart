@@ -16,9 +16,18 @@ import 'widgets/transaction_form.dart';
 import 'widgets/staggered_items.dart';
 import 'widgets/category_spending_chart.dart';
 import '../transaction_page/add_transaction_page.dart';
+import '../provider/wallet_provider.dart';
+import '../wallets/wallet_selector.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
-  const TransactionHistoryPage({super.key});
+  const TransactionHistoryPage({
+    super.key,
+    this.walletId,
+    this.walletName,
+  });
+
+  final String? walletId;
+  final String? walletName;
 
   @override
   State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
@@ -32,9 +41,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   DateTimeRange? _range;
   bool _showCategoryChart = false;
 
-  List<Transaction> _filter(List<Transaction> semua) {
+  List<Transaction> _filter(List<Transaction> semua, String? walletId) {
     final q = _query.trim().toLowerCase();
     final hasil = semua.where((tx) {
+      if (walletId != null && tx.walletId != walletId) {
+        return false;
+      }
       if (_selectedFilter == 'Masuk' && !tx.isIncome) return false;
       if (_selectedFilter == 'Keluar' && tx.isIncome) return false;
       if (q.isNotEmpty && !tx.title.toLowerCase().contains(q)) return false;
@@ -64,7 +76,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   void _tambah() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const AddTransactionPage()),
+      MaterialPageRoute(
+      builder: (_) => AddTransactionPage(
+        initialWalletId: widget.walletId ??
+            context.read<WalletProvider>().selectedWalletId,
+      ),
+      ),
     );
   }
 
@@ -102,7 +119,14 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   @override
   Widget build(BuildContext context) {
     final repo = context.watch<TransactionRepository>();
-    final data = _filter(repo.items);
+    final selectedWalletId =
+        widget.walletId ?? context.watch<WalletProvider>().selectedWalletId;
+    final data = _filter(repo.items, selectedWalletId);
+    final chartTransactions = selectedWalletId == null
+        ? repo.items
+        : repo.items
+              .where((tx) => tx.walletId == selectedWalletId)
+              .toList();
     final totalMasuk = data
         .where((t) => t.isIncome)
         .fold<double>(0, (s, t) => s + t.amount);
@@ -112,9 +136,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Moneger',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        leadingWidth: 165,
+        leading: const WalletSelector(),
+        title: Text(
+          widget.walletName ?? 'Moneger',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         flexibleSpace: const HologramGradientBackground(
           lightModeGradient: AppTheme.hologramGradient,
@@ -158,7 +184,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
             child: _showCategoryChart
                 ? SingleChildScrollView(
                     child: CategorySpendingChart(
-                      transactions: repo.items,
+                      transactions: chartTransactions,
                       range: _range,
                     ),
                   )
