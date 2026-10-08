@@ -9,6 +9,8 @@ import 'package:provider/provider.dart';
 
 import '../models/transaction_repo.dart';
 import '../settings_page/app_theme.dart';
+import '../provider/wallet_provider.dart';
+import '../wallets/wallet_selector.dart';
 
 enum PeriodeFilter { hariIni, mingguIni, bulanIni }
 
@@ -26,27 +28,41 @@ class _MonefyHomeState extends State<MonefyHome> {
   PeriodeFilter _periode = PeriodeFilter.bulanIni;
   DateTimeRange? _rentang;
 
-  List<Transaksi> get _semua => context
-      .watch<TransactionRepository>()
-      .items
-      .map(
-        (t) => Transaksi(
-          judul: t.title,
-          jumlah: t.amount,
-          tipe: t.isIncome
-              ? TipeTransaksi.pemasukan
-              : TipeTransaksi.pengeluaran,
-          tanggal: t.date,
-          kategori: t.category,
-        ),
-      )
-      .toList();
+  List<Transaksi> get _semua {
+    final selectedWalletId = context.watch<WalletProvider>().selectedWalletId;
+    final transactions = context.watch<TransactionRepository>().items.where(
+      (transaction) =>
+          selectedWalletId == null || transaction.walletId == selectedWalletId,
+    );
+    return transactions
+        .map(
+          (t) => Transaksi(
+            judul: t.title,
+            jumlah: t.amount,
+            tipe: t.isIncome
+                ? TipeTransaksi.pemasukan
+                : TipeTransaksi.pengeluaran,
+            tanggal: t.date,
+            kategori: t.category,
+          ),
+        )
+        .toList();
+  }
 
-  double get _totalSaldo => _semua.fold(
-    0.0,
-    (sum, t) =>
-        sum + (t.tipe == TipeTransaksi.pemasukan ? t.jumlah : -t.jumlah),
-  );
+  double get _totalSaldo {
+    final wallets = context.watch<WalletProvider>();
+    final selectedWalletId = wallets.selectedWalletId;
+    final openingBalances = wallets.wallets
+        .where(
+          (wallet) => selectedWalletId == null || wallet.id == selectedWalletId,
+        )
+        .fold<double>(0, (sum, wallet) => sum + wallet.openingBalance);
+    return _semua.fold(
+      openingBalances,
+      (sum, t) =>
+          sum + (t.tipe == TipeTransaksi.pemasukan ? t.jumlah : -t.jumlah),
+    );
+  }
 
   bool _masukPeriode(DateTime t) {
     if (_rentang != null) {
@@ -118,7 +134,10 @@ class _MonefyHomeState extends State<MonefyHome> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AddTransactionPage(initialIsIncome: income),
+        builder: (_) => AddTransactionPage(
+          initialIsIncome: income,
+          initialWalletId: context.read<WalletProvider>().selectedWalletId,
+        ),
       ),
     );
   }
@@ -131,6 +150,8 @@ class _MonefyHomeState extends State<MonefyHome> {
 
     return Scaffold(
       appBar: AppBar(
+        leadingWidth: 165,
+        leading: const WalletSelector(),
         title: const Text('Moneger'),
         flexibleSpace: const HologramGradientBackground(
           lightModeGradient: AppTheme.hologramGradient,

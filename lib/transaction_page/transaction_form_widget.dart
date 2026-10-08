@@ -6,11 +6,18 @@ import '../models/category_model.dart';
 import '../models/transaction_model.dart';
 import '../models/transaction_repo.dart';
 import '../settings_page/app_setting.dart';
+import '../provider/wallet_provider.dart';
+import '../models/money_wallet.dart';
 
 class TransactionFormWidget extends StatefulWidget {
   final bool initialIsIncome;
+  final String? initialWalletId;
 
-  const TransactionFormWidget({super.key, this.initialIsIncome = false});
+  const TransactionFormWidget({
+    super.key,
+    this.initialIsIncome = false,
+    this.initialWalletId,
+  });
 
   @override
   State<TransactionFormWidget> createState() => _TransactionFormWidgetState();
@@ -27,6 +34,7 @@ class _TransactionFormWidgetState extends State<TransactionFormWidget> {
   late bool _isIncome = widget.initialIsIncome;
   Category? _category;
   DateTime _date = DateTime.now();
+  String? _walletId;
 
   Color get _accent => _isIncome ? _green : _red;
   CategoryType get _type =>
@@ -78,6 +86,7 @@ class _TransactionFormWidgetState extends State<TransactionFormWidget> {
       date: _date,
       category: category.name,
       isIncome: _isIncome,
+      walletId: _walletId ?? widget.initialWalletId ?? MoneyWallet.defaultId,
     );
 
     final repo = context.read<TransactionRepository>();
@@ -94,12 +103,48 @@ class _TransactionFormWidgetState extends State<TransactionFormWidget> {
   @override
   Widget build(BuildContext context) {
     final currency = context.read<AppSettings>().currencySymbol;
+    final wallets = context.watch<WalletProvider>().wallets;
+    final selectedWalletId = wallets.any((wallet) => wallet.id == _walletId)
+        ? _walletId!
+        : wallets.any((wallet) => wallet.id == widget.initialWalletId)
+        ? widget.initialWalletId!
+        : wallets.first.id;
 
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (widget.initialWalletId != null)
+            InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'Dompet',
+                border: OutlineInputBorder(),
+              ),
+              child: Text(
+                wallets
+                    .firstWhere((wallet) => wallet.id == selectedWalletId)
+                    .name,
+              ),
+            )
+          else
+            DropdownButtonFormField<String>(
+              value: selectedWalletId,
+              decoration: const InputDecoration(
+                labelText: 'Dompet',
+                border: OutlineInputBorder(),
+              ),
+              items: wallets
+                  .map(
+                    (wallet) => DropdownMenuItem(
+                      value: wallet.id,
+                      child: Text(wallet.name),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) => setState(() => _walletId = value),
+            ),
+          const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: SegmentedButton<bool>(

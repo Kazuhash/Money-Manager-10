@@ -8,6 +8,7 @@ import 'category_management_page.dart';
 import 'currency_page.dart';
 import 'about_page.dart';
 import 'app_theme.dart';
+import 'savings_goal_page.dart';
 
 class SettingsPage extends StatelessWidget {
   final List<Transaction> transactions;
@@ -73,6 +74,16 @@ class SettingsPage extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const CurrencyPage()),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.savings_outlined),
+            title: const Text('Target Tabungan'),
+            subtitle: const Text('Atur tujuan dan lacak progres tabungan'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SavingsGoalPage()),
             ),
           ),
           SwitchListTile(

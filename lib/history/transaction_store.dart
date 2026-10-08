@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/transaction_model.dart';
+import '../models/money_wallet.dart';
 
 class TransactionStore {
   static const _key = 'transactions_v1';
@@ -32,6 +33,7 @@ class TransactionStore {
         'date': t.date.toIso8601String(),
         'category': t.category,
         'isIncome': t.isIncome,
+        'walletId': t.walletId,
       };
 
   static Transaction _fromMap(Map<String, dynamic> m) => Transaction(
@@ -41,5 +43,6 @@ class TransactionStore {
         date: DateTime.parse(m['date'] as String),
         category: m['category'] as String,
         isIncome: m['isIncome'] as bool,
+        walletId: m['walletId'] as String? ?? MoneyWallet.defaultId,
       );
 }
