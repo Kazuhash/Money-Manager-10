@@ -192,8 +192,6 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           'Riwayat Transaksi',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.date_range),
@@ -203,8 +201,6 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambah,
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
       body: Column(

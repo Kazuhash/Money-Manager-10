@@ -10,8 +10,6 @@ class CategoryManagementPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Kategori'),
-        backgroundColor: const Color(0xFF81C995),
-        foregroundColor: Colors.white,
         centerTitle: true,
         flexibleSpace: const HologramAppBarBackground(),
       ),

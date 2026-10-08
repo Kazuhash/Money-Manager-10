@@ -23,9 +23,11 @@ class FilterChipsRow extends StatelessWidget {
           return ChoiceChip(
             label: Text(filter),
             selected: isSelected,
-            selectedColor: Colors.deepPurple,
+            selectedColor: Theme.of(context).colorScheme.primary,
             labelStyle: TextStyle(
-              color: isSelected ? Colors.white : Colors.black,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurface,
             ),
             onSelected: (_) => onSelected(filter),
           );

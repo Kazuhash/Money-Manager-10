@@ -101,10 +101,7 @@ class _MonefyHomeState extends State<MonefyHome> {
     final expense = _total(data, TipeTransaksi.pengeluaran);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0FFF5),
       appBar: AppBar(
-        backgroundColor: green,
-        foregroundColor: Colors.white,
         title: const Text('Monefy'),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

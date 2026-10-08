@@ -1,11 +1,32 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  static const Color green = Color(0xFF81C995);
   static const Color violet = Color(0xFF8B5CF6);
   static const Color blue = Color(0xFF3B82F6);
   static const Color cyan = Color(0xFF22D3EE);
   static const Color night = Color(0xFF0A0620);
   static const Color panel = Color(0xFF150D35);
+
+  static ThemeData get light {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: green,
+      brightness: Brightness.light,
+    );
+
+    return ThemeData(
+      colorScheme: scheme,
+      scaffoldBackgroundColor: const Color(0xFFF0FFF5),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: green,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        selectedItemColor: violet,
+      ),
+    );
+  }
 
   static ThemeData get dark {
     final scheme = const ColorScheme.dark().copyWith(
@@ -49,6 +70,11 @@ class AppTheme {
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: violet,
         foregroundColor: Colors.white,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: panel,
+        selectedItemColor: cyan,
+        unselectedItemColor: Colors.white60,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
