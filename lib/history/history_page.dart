@@ -108,7 +108,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Monefy',
+          'Moneger',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
