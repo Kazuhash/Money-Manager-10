@@ -93,7 +93,7 @@ void _bukaHalaman({required bool income}) {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Monefy'),
+        title: const Text('Moneger'),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Row(
