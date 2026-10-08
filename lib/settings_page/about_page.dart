@@ -26,7 +26,7 @@ class AboutPage extends StatelessWidget {
               ),
               SizedBox(height: 16),
               Text(
-                'Monefy',
+                'Moneger',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 4),

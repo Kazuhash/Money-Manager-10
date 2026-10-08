@@ -5,6 +5,7 @@ import 'main_navigation.dart';
 import 'settings_page/app_setting.dart';
 import 'settings_page/app_theme.dart';
 import 'models/transaction_repo.dart';
+import 'provider/category_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,7 @@ Future<void> main() async {
           create: (_) => AppSettings(preferences: preferences),
         ),
         ChangeNotifierProvider.value(value: repo),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
       ],
       child: const MyApp(),
     ),

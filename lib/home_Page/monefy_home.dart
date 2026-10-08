@@ -1,10 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'tambah_pemasukan_page.dart';
-import 'tambah_pengeluaran_page.dart';
+import '../transaction_page/add_transaction_page.dart';
 import 'transaksi.dart';
 import 'package:provider/provider.dart';
-import '../models/transaction_model.dart';
 import '../models/transaction_repo.dart';
 import '../settings_page/app_theme.dart';
 
@@ -79,23 +77,13 @@ List<Transaksi> get _semua => context
     }
   }
 
-Future<void> _bukaHalaman(Widget page) async {
-  final hasil = await Navigator.push<Transaksi>(
+void _bukaHalaman({required bool income}) {
+  Navigator.push(
     context,
-    MaterialPageRoute(builder: (_) => page),
+    MaterialPageRoute(
+      builder: (_) => AddTransactionPage(initialIsIncome: income),
+    ),
   );
-  if (hasil != null && mounted) {
-    context.read<TransactionRepository>().add(
-          Transaction(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            title: hasil.judul,
-            amount: hasil.jumlah,
-            date: hasil.tanggal,
-            category: hasil.kategori,
-            isIncome: hasil.tipe == TipeTransaksi.pemasukan,
-          ),
-        );
-  }
 }
 
   @override
@@ -106,7 +94,7 @@ Future<void> _bukaHalaman(Widget page) async {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Monefy'),
+        title: const Text('Moneger'),
         flexibleSpace: const HologramGradientBackground(
           lightModeGradient: AppTheme.hologramGradient,
         ),
@@ -119,7 +107,7 @@ Future<void> _bukaHalaman(Widget page) async {
             heroTag: 'minus',
             backgroundColor: red,
             foregroundColor: Colors.white,
-            onPressed: () => _bukaHalaman(const TambahPengeluaranPage()),
+            onPressed: () => _bukaHalaman(income: false),
             child: const Icon(Icons.remove),
           ),
           const SizedBox(width: 40),
@@ -127,7 +115,7 @@ Future<void> _bukaHalaman(Widget page) async {
             heroTag: 'plus',
             backgroundColor: green,
             foregroundColor: Colors.white,
-            onPressed: () => _bukaHalaman(const TambahPemasukanPage()),
+            onPressed: () => _bukaHalaman(income: true),
             child: const Icon(Icons.add),
           ),
         ],

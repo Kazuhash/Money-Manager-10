@@ -48,7 +48,7 @@ class SettingsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pengaturan'),
+        title: const Text('Moneger'),
         centerTitle: true,
         flexibleSpace: const HologramGradientBackground(
           lightModeGradient: AppTheme.hologramGradient,
