@@ -6,6 +6,7 @@ class Transaksi {
   final TipeTransaksi tipe;
   final DateTime tanggal;
   final String kategori;
+  final String? id;
 
   Transaksi({
     required this.judul,
@@ -13,8 +14,10 @@ class Transaksi {
     required this.tipe,
     required this.tanggal,
     this.kategori = 'Lainnya',
+    this.id,
   });
 }
+
 String rupiah(double v) {
   final s = v.abs().round().toString();
   final buf = StringBuffer();

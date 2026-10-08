@@ -1,16 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'main_navigation.dart';
 import 'settings_page/app_setting.dart';
 import 'settings_page/app_theme.dart';
+import 'models/transaction_repo.dart';
+import 'provider/category_provider.dart';
+import 'provider/savings_goal_provider.dart';
+import 'provider/wallet_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final preferences = await SharedPreferences.getInstance();
+  final repo = TransactionRepository();
+  await repo.load();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AppSettings(preferences: preferences),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AppSettings(preferences: preferences),
+        ),
+        ChangeNotifierProvider.value(value: repo),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(
+          create: (_) => SavingsGoalProvider(preferences: preferences),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WalletProvider(preferences: preferences),
+        ),
+      ],
       child: const MyApp(),
     ),
   );
@@ -22,8 +42,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<AppSettings>();
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: settings.themeMode,
       home: const MainNavigation(),

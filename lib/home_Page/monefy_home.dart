@@ -7,7 +7,10 @@ import 'transaksi.dart';
 
 import 'package:provider/provider.dart';
 
+import '../models/transaction_model.dart';
 import '../models/transaction_repo.dart';
+import '../history/widgets/transaction_form.dart';
+import '../settings_page/app_setting.dart';
 import '../settings_page/app_theme.dart';
 import '../provider/wallet_provider.dart';
 import '../wallets/wallet_selector.dart';
@@ -44,6 +47,7 @@ class _MonefyHomeState extends State<MonefyHome> {
                 : TipeTransaksi.pengeluaran,
             tanggal: t.date,
             kategori: t.category,
+            id: t.id,
           ),
         )
         .toList();
@@ -147,6 +151,7 @@ class _MonefyHomeState extends State<MonefyHome> {
     final data = _terfilter;
     final income = _total(data, TipeTransaksi.pemasukan);
     final expense = _total(data, TipeTransaksi.pengeluaran);
+    final settings = context.watch<AppSettings>();
 
     return Scaffold(
       appBar: AppBar(
@@ -193,7 +198,7 @@ class _MonefyHomeState extends State<MonefyHome> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    rupiah(_totalSaldo),
+                    settings.formatMoney(_totalSaldo),
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -280,9 +285,17 @@ class _MonefyHomeState extends State<MonefyHome> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _legend(green, 'Pemasukan', rupiah(income)),
+                            _legend(
+                              green,
+                              'Pemasukan',
+                              settings.formatMoney(income),
+                            ),
                             const SizedBox(height: 12),
-                            _legend(red, 'Pengeluaran', rupiah(expense)),
+                            _legend(
+                              red,
+                              'Pengeluaran',
+                              settings.formatMoney(expense),
+                            ),
                           ],
                         ),
                       ),
@@ -304,7 +317,7 @@ class _MonefyHomeState extends State<MonefyHome> {
               child: Center(child: Text('Belum ada transaksi')),
             )
           else
-            ...data.take(10).map(_itemTransaksi),
+            ...data.take(10).map(_itemDenganAksi),
         ],
       ),
     );
@@ -334,6 +347,7 @@ class _MonefyHomeState extends State<MonefyHome> {
   );
 
   Widget _itemTransaksi(Transaksi t) {
+    final settings = context.watch<AppSettings>();
     final masuk = t.tipe == TipeTransaksi.pemasukan;
     final warna = masuk ? green : red;
     return Card(
@@ -348,11 +362,70 @@ class _MonefyHomeState extends State<MonefyHome> {
         title: Text(t.judul),
         subtitle: Text(tanggalPendek(t.tanggal)),
         trailing: Text(
-          '${masuk ? '+' : '-'}${rupiah(t.jumlah)}',
+          '${masuk ? '+' : '-'}${settings.formatMoney(t.jumlah)}',
           style: TextStyle(color: warna, fontWeight: FontWeight.bold),
         ),
       ),
     );
+  }
+
+  Widget _itemDenganAksi(Transaksi t) {
+    final id = t.id;
+    if (id == null) return _itemTransaksi(t);
+    return Dismissible(
+      key: ValueKey(id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        padding: const EdgeInsets.only(right: 24),
+        alignment: Alignment.centerRight,
+        decoration: BoxDecoration(
+          color: red,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      onDismissed: (_) => _hapus(id),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _edit(id),
+        child: _itemTransaksi(t),
+      ),
+    );
+  }
+
+  Future<void> _edit(String id) async {
+    final repo = context.read<TransactionRepository>();
+    final index = repo.items.indexWhere((e) => e.id == id);
+    if (index == -1) return;
+    final hasil = await showTransactionForm(context, initial: repo.items[index]);
+    if (hasil == null || !mounted) return;
+    repo.update(hasil);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('${hasil.title} berhasil diperbarui')),
+      );
+  }
+
+  void _hapus(String id) {
+    final repo = context.read<TransactionRepository>();
+    final posisi = repo.items.indexWhere((e) => e.id == id);
+    if (posisi == -1) return;
+    final Transaction tx = repo.items[posisi];
+    final index = repo.remove(id);
+    if (index == -1) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${tx.title} berhasil dihapus'),
+          action: SnackBarAction(
+            label: 'Urungkan',
+            onPressed: () => repo.insertAt(index, tx),
+          ),
+        ),
+      );
   }
 }
 

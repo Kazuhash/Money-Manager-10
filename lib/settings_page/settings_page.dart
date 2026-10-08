@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/transaction_model.dart';
+import '../models/transaction_repo.dart';
 import 'app_setting.dart';
 import 'category_management_page.dart';
 import 'currency_page.dart';
@@ -15,9 +16,9 @@ class SettingsPage extends StatelessWidget {
 
   const SettingsPage({super.key, this.transactions = const []});
 
-  String _buildCsv() {
+  String _buildCsv(List<Transaction> data) {
     final buffer = StringBuffer('id,title,amount,date,category,type\n');
-    for (final t in transactions) {
+    for (final t in data) {
       final title = t.title.replaceAll('"', '""');
       final category = t.category.replaceAll('"', '""');
       buffer.writeln(
@@ -29,16 +30,19 @@ class SettingsPage extends StatelessWidget {
 
   Future<void> _exportData(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    if (transactions.isEmpty) {
+    final data = transactions.isNotEmpty
+        ? transactions
+        : context.read<TransactionRepository>().items;
+    if (data.isEmpty) {
       messenger.showSnackBar(
         const SnackBar(content: Text('Belum ada transaksi untuk diexport')),
       );
       return;
     }
-    await Clipboard.setData(ClipboardData(text: _buildCsv()));
+    await Clipboard.setData(ClipboardData(text: _buildCsv(data)));
     messenger.showSnackBar(
       SnackBar(
-        content: Text('${transactions.length} transaksi disalin sebagai CSV'),
+        content: Text('${data.length} transaksi disalin sebagai CSV'),
       ),
     );
   }
