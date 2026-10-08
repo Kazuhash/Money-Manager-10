@@ -1,14 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppSettings extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.light;
+  static const _darkModeKey = 'isDarkMode';
+
+  AppSettings({required SharedPreferences preferences})
+    : _preferences = preferences,
+      _themeMode = (preferences.getBool(_darkModeKey) ?? false)
+          ? ThemeMode.dark
+          : ThemeMode.light;
+
+  final SharedPreferences _preferences;
+  ThemeMode _themeMode;
   String _currencySymbol = 'Rp';
 
   ThemeMode get themeMode => _themeMode;
   bool get isDark => _themeMode == ThemeMode.dark;
   String get currencySymbol => _currencySymbol;
 
-  void setDark(bool value) {
+  Future<void> setDark(bool value) async {
+    if (value == isDark) return;
+    final saved = await _preferences.setBool(_darkModeKey, value);
+    if (!saved) {
+      throw StateError('Could not save dark mode preference.');
+    }
     _themeMode = value ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
   }

@@ -9,8 +9,6 @@ class AboutPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Info Aplikasi'),
-        backgroundColor: const Color(0xFF81C995),
-        foregroundColor: Colors.white,
         centerTitle: true,
         flexibleSpace: const HologramAppBarBackground(),
       ),

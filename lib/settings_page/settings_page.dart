@@ -47,8 +47,6 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pengaturan'),
-        backgroundColor: const Color(0xFF81C995),
-        foregroundColor: Colors.white,
         centerTitle: true,
         flexibleSpace: const HologramAppBarBackground(),
       ),
@@ -79,7 +77,19 @@ class SettingsPage extends StatelessWidget {
             secondary: const Icon(Icons.dark_mode),
             title: const Text('Mode Gelap'),
             value: settings.isDark,
-            onChanged: settings.setDark,
+            onChanged: (value) async {
+              try {
+                await settings.setDark(value);
+              } catch (error) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal menyimpan pengaturan tema: $error'),
+                    ),
+                  );
+                }
+              }
+            },
           ),
           ListTile(
             leading: const Icon(Icons.file_download),

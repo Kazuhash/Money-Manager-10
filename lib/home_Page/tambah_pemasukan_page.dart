@@ -11,8 +11,6 @@ class TambahPemasukanPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: green,
-        foregroundColor: Colors.white,
         title: const Text('Tambah Pemasukan'),
       ),
       body: SingleChildScrollView(
