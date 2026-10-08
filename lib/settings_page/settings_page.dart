@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../models/transaction_model.dart';
 import 'app_setting.dart';
 import 'category_management_page.dart';
 import 'currency_page.dart';
 import 'about_page.dart';
 import 'app_theme.dart';
+import 'savings_goal_page.dart';
 
 class SettingsPage extends StatelessWidget {
   final List<Transaction> transactions;
@@ -19,7 +21,8 @@ class SettingsPage extends StatelessWidget {
       final title = t.title.replaceAll('"', '""');
       final category = t.category.replaceAll('"', '""');
       buffer.writeln(
-          '${t.id},"$title",${t.amount},${t.date.toIso8601String()},"$category",${t.isIncome ? 'income' : 'expense'}');
+        '${t.id},"$title",${t.amount},${t.date.toIso8601String()},"$category",${t.isIncome ? 'income' : 'expense'}',
+      );
     }
     return buffer.toString();
   }
@@ -46,11 +49,11 @@ class SettingsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pengaturan'),
-        backgroundColor: const Color(0xFF81C995),
-        foregroundColor: Colors.white,
+        title: const Text('Moneger'),
         centerTitle: true,
-        flexibleSpace: const HologramAppBarBackground(),
+        flexibleSpace: const HologramGradientBackground(
+          lightModeGradient: AppTheme.hologramGradient,
+        ),
       ),
       body: ListView(
         children: [
@@ -60,9 +63,7 @@ class SettingsPage extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const CategoryManagementPage(),
-              ),
+              MaterialPageRoute(builder: (_) => const CategoryManagementPage()),
             ),
           ),
           ListTile(
@@ -75,11 +76,33 @@ class SettingsPage extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const CurrencyPage()),
             ),
           ),
+          ListTile(
+            leading: const Icon(Icons.savings_outlined),
+            title: const Text('Target Tabungan'),
+            subtitle: const Text('Atur tujuan dan lacak progres tabungan'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SavingsGoalPage()),
+            ),
+          ),
           SwitchListTile(
             secondary: const Icon(Icons.dark_mode),
             title: const Text('Mode Gelap'),
             value: settings.isDark,
-            onChanged: settings.setDark,
+            onChanged: (value) async {
+              try {
+                await settings.setDark(value);
+              } catch (error) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal menyimpan pengaturan tema: $error'),
+                    ),
+                  );
+                }
+              }
+            },
           ),
           ListTile(
             leading: const Icon(Icons.file_download),

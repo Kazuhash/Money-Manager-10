@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/transaction_model.dart';
+import 'package:provider/provider.dart';
+
+import '../models/transaction_model.dart';
+import '../models/transaction_repo.dart';
+import '../settings_page/app_theme.dart';
 import 'date.dart';
-import 'transaction_store.dart';
 import 'widgets/date_header.dart';
 import 'widgets/empty_history.dart';
 import 'widgets/filters.dart';
@@ -10,9 +13,21 @@ import 'widgets/summary_card.dart';
 import 'widgets/search.dart';
 import 'widgets/date_range.dart';
 import 'widgets/transaction_form.dart';
+import 'widgets/staggered_items.dart';
+import 'widgets/category_spending_chart.dart';
+import '../transaction_page/add_transaction_page.dart';
+import '../provider/wallet_provider.dart';
+import '../wallets/wallet_selector.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
-  const TransactionHistoryPage({super.key});
+  const TransactionHistoryPage({
+    super.key,
+    this.walletId,
+    this.walletName,
+  });
+
+  final String? walletId;
+  final String? walletName;
 
   @override
   State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
@@ -21,84 +36,17 @@ class TransactionHistoryPage extends StatefulWidget {
 class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   static const _filters = ['Semua', 'Masuk', 'Keluar'];
 
-  List<Transaction> _transactions = [];
-  bool _loading = true;
-
   String _selectedFilter = 'Semua';
   String _query = '';
   DateTimeRange? _range;
+  bool _showCategoryChart = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _muat();
-  }
-
-  Future<void> _muat() async {
-    final saved = await TransactionStore.load();
-    if (!mounted) return;
-    setState(() {
-      _transactions = saved ?? _seed();
-      _loading = false;
-    });
-  }
-
-  void _simpanData() => TransactionStore.save(_transactions);
-
-  List<Transaction> _seed() => [
-        Transaction(
-          id: '1',
-          title: 'Gaji Bulanan',
-          amount: 5000000,
-          date: DateTime.now(),
-          category: 'Gaji',
-          isIncome: true,
-        ),
-        Transaction(
-          id: '2',
-          title: 'Makan Siang Nasi Padang',
-          amount: 25000,
-          date: DateTime.now(),
-          category: 'Makanan',
-          isIncome: false,
-        ),
-        Transaction(
-          id: '3',
-          title: 'Beli Bensin',
-          amount: 50000,
-          date: DateTime.now(),
-          category: 'Transport',
-          isIncome: false,
-        ),
-        Transaction(
-          id: '4',
-          title: 'Token Listrik Kost',
-          amount: 100000,
-          date: DateTime.now().subtract(const Duration(days: 1)),
-          category: 'Tagihan',
-          isIncome: false,
-        ),
-        Transaction(
-          id: '5',
-          title: 'Transfer dari mom',
-          amount: 500000,
-          date: DateTime.now().subtract(const Duration(days: 1)),
-          category: 'Lainnya',
-          isIncome: true,
-        ),
-        Transaction(
-          id: '6',
-          title: 'Belanja monthly Alfamart',
-          amount: 150000,
-          date: DateTime.now().subtract(const Duration(days: 3)),
-          category: 'Belanja',
-          isIncome: false,
-        ),
-      ];
-
-  List<Transaction> get _visibleTransactions {
+  List<Transaction> _filter(List<Transaction> semua, String? walletId) {
     final q = _query.trim().toLowerCase();
-    final hasil = _transactions.where((tx) {
+    final hasil = semua.where((tx) {
+      if (walletId != null && tx.walletId != walletId) {
+        return false;
+      }
       if (_selectedFilter == 'Masuk' && !tx.isIncome) return false;
       if (_selectedFilter == 'Keluar' && tx.isIncome) return false;
       if (q.isNotEmpty && !tx.title.toLowerCase().contains(q)) return false;
@@ -125,28 +73,29 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     if (hasil != null) setState(() => _range = hasil);
   }
 
-  Future<void> _tambah() async {
-    final baru = await showTransactionForm(context);
-    if (baru == null) return;
-    setState(() => _transactions.add(baru));
-    _simpanData();
-    _showSnack('${baru.title} berhasil ditambahkan');
+  void _tambah() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+      builder: (_) => AddTransactionPage(
+        initialWalletId: widget.walletId ??
+            context.read<WalletProvider>().selectedWalletId,
+      ),
+      ),
+    );
   }
 
   Future<void> _edit(Transaction lama) async {
     final hasil = await showTransactionForm(context, initial: lama);
-    if (hasil == null) return;
-    final index = _transactions.indexWhere((item) => item.id == lama.id);
-    if (index == -1) return;
-    setState(() => _transactions[index] = hasil);
-    _simpanData();
+    if (hasil == null || !mounted) return;
+    context.read<TransactionRepository>().update(hasil);
     _showSnack('${hasil.title} berhasil diperbarui');
   }
 
   void _hapus(Transaction tx) {
-    final index = _transactions.indexWhere((item) => item.id == tx.id);
-    setState(() => _transactions.removeAt(index));
-    _simpanData();
+    final repo = context.read<TransactionRepository>();
+    final index = repo.remove(tx.id);
+    if (index == -1) return;
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -155,10 +104,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           content: Text('${tx.title} berhasil dihapus'),
           action: SnackBarAction(
             label: 'Urungkan',
-            onPressed: () {
-              setState(() => _transactions.insert(index, tx));
-              _simpanData();
-            },
+            onPressed: () => repo.insertAt(index, tx),
           ),
         ),
       );
@@ -172,13 +118,15 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    final data = _visibleTransactions;
+    final repo = context.watch<TransactionRepository>();
+    final selectedWalletId =
+        widget.walletId ?? context.watch<WalletProvider>().selectedWalletId;
+    final data = _filter(repo.items, selectedWalletId);
+    final chartTransactions = selectedWalletId == null
+        ? repo.items
+        : repo.items
+              .where((tx) => tx.walletId == selectedWalletId)
+              .toList();
     final totalMasuk = data
         .where((t) => t.isIncome)
         .fold<double>(0, (s, t) => s + t.amount);
@@ -188,13 +136,26 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Riwayat Transaksi',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        leadingWidth: 165,
+        leading: const WalletSelector(),
+        title: Text(
+          widget.walletName ?? 'Moneger',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
+        flexibleSpace: const HologramGradientBackground(
+          lightModeGradient: AppTheme.hologramGradient,
+        ),
         actions: [
+          IconButton(
+            tooltip: _showCategoryChart
+                ? 'Tampilkan transaksi'
+                : 'Tampilkan grafik kategori',
+            icon: Icon(
+              _showCategoryChart ? Icons.list_alt : Icons.pie_chart_outline,
+            ),
+            onPressed: () =>
+                setState(() => _showCategoryChart = !_showCategoryChart),
+          ),
           IconButton(
             icon: const Icon(Icons.date_range),
             onPressed: _pilihRentang,
@@ -203,19 +164,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tambah,
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
       body: Column(
         children: [
-          HistorySummaryCard(
-            totalMasuk: totalMasuk,
-            totalKeluar: totalKeluar,
-          ),
-          HistorySearchField(
-            onChanged: (v) => setState(() => _query = v),
-          ),
+          HistorySummaryCard(totalMasuk: totalMasuk, totalKeluar: totalKeluar),
+          HistorySearchField(onChanged: (v) => setState(() => _query = v)),
           if (_range != null)
             DateRangeChip(
               range: _range!,
@@ -227,36 +181,51 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
             onSelected: (f) => setState(() => _selectedFilter = f),
           ),
           Expanded(
-            child: data.isEmpty
-                ? const EmptyHistory()
-                : ListView.builder(
+            child: _showCategoryChart
+                ? SingleChildScrollView(
+                    child: CategorySpendingChart(
+                      transactions: chartTransactions,
+                      range: _range,
+                    ),
+                  )
+                : data.isEmpty
+                    ? const EmptyHistory()
+                    : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 88),
                     itemCount: data.length,
                     itemBuilder: (context, index) {
                       final tx = data[index];
                       final showHeader =
-                          index == 0 || !isSameDay(data[index - 1].date, tx.date);
+                          index == 0 ||
+                          !isSameDay(data[index - 1].date, tx.date);
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (showHeader)
-                            DateHeader(label: labelTanggal(tx.date)),
-                          Dismissible(
-                            key: Key(tx.id),
-                            direction: DismissDirection.endToStart,
-                            background: Container(
-                              color: Colors.red,
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.only(right: 20.0),
-                              child: const Icon(Icons.delete, color: Colors.white),
+                      return StaggeredItem(
+                        index: index,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (showHeader)
+                              DateHeader(label: labelTanggal(tx.date)),
+                            Dismissible(
+                              key: Key(tx.id),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                color: Colors.red,
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20.0),
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              onDismissed: (_) => _hapus(tx),
+                              child: TransactionTile(
+                                transaction: tx,
+                                onTap: () => _edit(tx),
+                              ),
                             ),
-                            onDismissed: (_) => _hapus(tx),
-                            child: TransactionTile(
-                              transaction: tx,
-                              onTap: () => _edit(tx),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   ),

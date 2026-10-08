@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_theme.dart';
 
 class AboutPage extends StatelessWidget {
@@ -9,10 +10,8 @@ class AboutPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Info Aplikasi'),
-        backgroundColor: const Color(0xFF81C995),
-        foregroundColor: Colors.white,
         centerTitle: true,
-        flexibleSpace: const HologramAppBarBackground(),
+        flexibleSpace: const HologramGradientBackground(),
       ),
       body: Center(
         child: Padding(
@@ -20,11 +19,14 @@ class AboutPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: const [
-              Icon(Icons.account_balance_wallet,
-                  size: 72, color: Color(0xFF81C995)),
+              Icon(
+                Icons.account_balance_wallet,
+                size: 72,
+                color: Color(0xFF81C995),
+              ),
               SizedBox(height: 16),
               Text(
-                'Monefy',
+                'Moneger',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 4),

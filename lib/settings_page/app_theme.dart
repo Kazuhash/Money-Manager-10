@@ -1,11 +1,37 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  static const Color green = Color(0xFF81C995);
   static const Color violet = Color(0xFF8B5CF6);
   static const Color blue = Color(0xFF3B82F6);
   static const Color cyan = Color(0xFF22D3EE);
   static const Color night = Color(0xFF0A0620);
   static const Color panel = Color(0xFF150D35);
+  static const LinearGradient hologramGradient = LinearGradient(
+    colors: [violet, blue, cyan],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+
+  static ThemeData get light {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: green,
+      brightness: Brightness.light,
+    );
+
+    return ThemeData(
+      colorScheme: scheme,
+      scaffoldBackgroundColor: const Color(0xFFF0FFF5),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: green,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        selectedItemColor: violet,
+      ),
+    );
+  }
 
   static ThemeData get dark {
     final scheme = const ColorScheme.dark().copyWith(
@@ -50,6 +76,11 @@ class AppTheme {
         backgroundColor: violet,
         foregroundColor: Colors.white,
       ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: panel,
+        selectedItemColor: cyan,
+        unselectedItemColor: Colors.white60,
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: violet,
@@ -61,25 +92,30 @@ class AppTheme {
   }
 }
 
-class HologramAppBarBackground extends StatelessWidget {
-  const HologramAppBarBackground({super.key});
+class HologramGradientBackground extends StatelessWidget {
+  const HologramGradientBackground({
+    super.key,
+    this.child,
+    this.lightModeGradient,
+  });
+
+  final Widget? child;
+  final LinearGradient? lightModeGradient;
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    if (!dark) return const SizedBox.shrink();
+    if (!dark) {
+      if (lightModeGradient == null) return child ?? const SizedBox.shrink();
+      return Container(
+        decoration: BoxDecoration(gradient: lightModeGradient),
+        child: child,
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppTheme.violet,
-            AppTheme.blue,
-            AppTheme.cyan,
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
+        gradient: AppTheme.hologramGradient,
         boxShadow: [
           BoxShadow(
             color: AppTheme.cyan.withValues(alpha: 0.5),
@@ -87,6 +123,7 @@ class HologramAppBarBackground extends StatelessWidget {
           ),
         ],
       ),
+      child: child,
     );
   }
 }

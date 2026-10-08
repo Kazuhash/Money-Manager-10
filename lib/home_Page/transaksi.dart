@@ -5,15 +5,16 @@ class Transaksi {
   final double jumlah;
   final TipeTransaksi tipe;
   final DateTime tanggal;
+  final String kategori;
 
   Transaksi({
     required this.judul,
     required this.jumlah,
     required this.tipe,
     required this.tanggal,
+    this.kategori = 'Lainnya',
   });
 }
-
 String rupiah(double v) {
   final s = v.abs().round().toString();
   final buf = StringBuffer();

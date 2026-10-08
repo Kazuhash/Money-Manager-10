@@ -22,10 +22,8 @@ class CurrencyPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mata Uang'),
-        backgroundColor: const Color(0xFF81C995),
-        foregroundColor: Colors.white,
         centerTitle: true,
-        flexibleSpace: const HologramAppBarBackground(),
+        flexibleSpace: const HologramGradientBackground(),
       ),
       body: ListView(
         children: _currencies.map((c) {

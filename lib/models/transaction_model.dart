@@ -1,3 +1,5 @@
+import 'money_wallet.dart';
+
 class Transaction {
   final String id;
   final String title;
@@ -5,6 +7,7 @@ class Transaction {
   final DateTime date;
   final String category;
   final bool isIncome;
+  final String walletId;
 
   Transaction({
     required this.id,
@@ -13,6 +16,7 @@ class Transaction {
     required this.date,
     required this.category,
     required this.isIncome,
+    this.walletId = MoneyWallet.defaultId,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +27,7 @@ class Transaction {
       'date': date.toIso8601String(),
       'category': category,
       'isIncome': isIncome,
+      'walletId': walletId,
     };
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../models/money_wallet.dart';
 import '../../../models/transaction_model.dart';
 
 const kategoriList = [
@@ -9,7 +11,6 @@ const kategoriList = [
   'Belanja',
   'Lainnya',
 ];
-
 
 Future<Transaction?> showTransactionForm(
   BuildContext context, {
@@ -79,13 +80,15 @@ class _TransactionFormSheetState extends State<TransactionFormSheet> {
   void _simpan() {
     if (!_formKey.currentState!.validate()) return;
     final tx = Transaction(
-      id: widget.initial?.id ??
+      id:
+          widget.initial?.id ??
           DateTime.now().millisecondsSinceEpoch.toString(),
       title: _titleCtrl.text.trim(),
       amount: double.parse(_amountCtrl.text.trim()),
       date: _date,
       category: _category,
       isIncome: _isIncome,
+      walletId: widget.initial?.walletId ?? MoneyWallet.defaultId,
     );
     Navigator.pop(context, tx);
   }
@@ -123,8 +126,7 @@ class _TransactionFormSheetState extends State<TransactionFormSheet> {
                   ButtonSegment(value: true, label: Text('Masuk')),
                 ],
                 selected: {_isIncome},
-                onSelectionChanged: (s) =>
-                    setState(() => _isIncome = s.first),
+                onSelectionChanged: (s) => setState(() => _isIncome = s.first),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -133,8 +135,9 @@ class _TransactionFormSheetState extends State<TransactionFormSheet> {
                   labelText: 'Judul',
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Judul wajib diisi' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Judul wajib diisi'
+                    : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
