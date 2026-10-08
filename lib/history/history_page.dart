@@ -10,6 +10,7 @@ import 'widgets/summary_card.dart';
 import 'widgets/search.dart';
 import 'widgets/date_range.dart';
 import 'widgets/transaction_form.dart';
+import 'widgets/staggered_items.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
@@ -236,27 +237,31 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                       final showHeader =
                           index == 0 || !isSameDay(data[index - 1].date, tx.date);
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (showHeader)
-                            DateHeader(label: labelTanggal(tx.date)),
-                          Dismissible(
-                            key: Key(tx.id),
-                            direction: DismissDirection.endToStart,
-                            background: Container(
-                              color: Colors.red,
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.only(right: 20.0),
-                              child: const Icon(Icons.delete, color: Colors.white),
+                      return StaggeredItem(
+                        index: index,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (showHeader)
+                              DateHeader(label: labelTanggal(tx.date)),
+                            Dismissible(
+                              key: Key(tx.id),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                color: Colors.red,
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20.0),
+                                child: const Icon(Icons.delete,
+                                    color: Colors.white),
+                              ),
+                              onDismissed: (_) => _hapus(tx),
+                              child: TransactionTile(
+                                transaction: tx,
+                                onTap: () => _edit(tx),
+                              ),
                             ),
-                            onDismissed: (_) => _hapus(tx),
-                            child: TransactionTile(
-                              transaction: tx,
-                              onTap: () => _edit(tx),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   ),
