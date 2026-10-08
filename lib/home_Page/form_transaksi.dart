@@ -46,6 +46,7 @@ class _FormTransaksiState extends State<FormTransaksi> {
         jumlah: jumlah,
         tipe: widget.tipe,
         tanggal: DateTime.now(),
+        kategori: _kategori,
       ),
     );
   }

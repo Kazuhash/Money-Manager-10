@@ -4,13 +4,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'main_navigation.dart';
 import 'settings_page/app_setting.dart';
 import 'settings_page/app_theme.dart';
+import 'models/transaction_repo.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final preferences = await SharedPreferences.getInstance();
+  final repo = TransactionRepository();
+  await repo.load();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AppSettings(preferences: preferences),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AppSettings(preferences: preferences),
+        ),
+        ChangeNotifierProvider.value(value: repo),
+      ],
       child: const MyApp(),
     ),
   );

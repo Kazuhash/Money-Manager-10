@@ -5,15 +5,24 @@ import '../../../models/transaction_model.dart';
 IconData ikonKategori(String kategori) {
   switch (kategori) {
     case 'Gaji':
+    case 'Uang saku':
+    case 'Bonus':
       return Icons.payments;
+    case 'Hadiah':
+      return Icons.card_giftcard;
     case 'Makanan':
       return Icons.restaurant;
     case 'Transport':
+    case 'Transportasi':
       return Icons.directions_car;
     case 'Tagihan':
       return Icons.receipt_long;
     case 'Belanja':
       return Icons.shopping_bag;
+    case 'Hiburan':
+      return Icons.movie;
+    case 'Kesehatan':
+      return Icons.medical_services;
     default:
       return Icons.category;
   }
