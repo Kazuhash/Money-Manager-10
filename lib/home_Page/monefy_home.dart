@@ -386,10 +386,21 @@ class _MonefyHomeState extends State<MonefyHome> {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (_) => _hapus(id),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _edit(id),
-        child: _itemTransaksi(t),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _edit(id),
+              child: _itemTransaksi(t),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Hapus',
+            icon: const Icon(Icons.delete_outline, color: red),
+            onPressed: () => _hapus(id),
+          ),
+        ],
       ),
     );
   }
