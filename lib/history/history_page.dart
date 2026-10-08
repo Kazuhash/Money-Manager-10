@@ -12,6 +12,7 @@ import 'widgets/search.dart';
 import 'widgets/date_range.dart';
 import 'widgets/transaction_form.dart';
 import 'widgets/staggered_items.dart';
+import '../transaction_page/add_transaction_page.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
@@ -56,11 +57,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     if (hasil != null) setState(() => _range = hasil);
   }
 
-  Future<void> _tambah() async {
-    final baru = await showTransactionForm(context);
-    if (baru == null || !mounted) return;
-    context.read<TransactionRepository>().add(baru);
-    _showSnack('${baru.title} berhasil ditambahkan');
+  void _tambah() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddTransactionPage()),
+    );
   }
 
   Future<void> _edit(Transaction lama) async {
