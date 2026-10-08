@@ -14,6 +14,7 @@ import 'widgets/search.dart';
 import 'widgets/date_range.dart';
 import 'widgets/transaction_form.dart';
 import 'widgets/staggered_items.dart';
+import 'widgets/category_spending_chart.dart';
 import '../transaction_page/add_transaction_page.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
@@ -29,6 +30,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   String _selectedFilter = 'Semua';
   String _query = '';
   DateTimeRange? _range;
+  bool _showCategoryChart = false;
 
   List<Transaction> _filter(List<Transaction> semua) {
     final q = _query.trim().toLowerCase();
@@ -119,6 +121,16 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
         ),
         actions: [
           IconButton(
+            tooltip: _showCategoryChart
+                ? 'Tampilkan transaksi'
+                : 'Tampilkan grafik kategori',
+            icon: Icon(
+              _showCategoryChart ? Icons.list_alt : Icons.pie_chart_outline,
+            ),
+            onPressed: () =>
+                setState(() => _showCategoryChart = !_showCategoryChart),
+          ),
+          IconButton(
             icon: const Icon(Icons.date_range),
             onPressed: _pilihRentang,
           ),
@@ -143,9 +155,16 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
             onSelected: (f) => setState(() => _selectedFilter = f),
           ),
           Expanded(
-            child: data.isEmpty
-                ? const EmptyHistory()
-                : ListView.builder(
+            child: _showCategoryChart
+                ? SingleChildScrollView(
+                    child: CategorySpendingChart(
+                      transactions: repo.items,
+                      range: _range,
+                    ),
+                  )
+                : data.isEmpty
+                    ? const EmptyHistory()
+                    : ListView.builder(
                     padding: const EdgeInsets.only(bottom: 88),
                     itemCount: data.length,
                     itemBuilder: (context, index) {

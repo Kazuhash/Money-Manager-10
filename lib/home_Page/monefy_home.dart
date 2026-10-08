@@ -1,8 +1,12 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import '../transaction_page/add_transaction_page.dart';
 import 'transaksi.dart';
+
 import 'package:provider/provider.dart';
+
 import '../models/transaction_repo.dart';
 import '../settings_page/app_theme.dart';
 
@@ -20,11 +24,13 @@ class _MonefyHomeState extends State<MonefyHome> {
   static const red = Color(0xFFF08080);
 
   PeriodeFilter _periode = PeriodeFilter.bulanIni;
+  DateTimeRange? _rentang;
 
-List<Transaksi> get _semua => context
-    .watch<TransactionRepository>()
-    .items
-    .map((t) => Transaksi(
+  List<Transaksi> get _semua => context
+      .watch<TransactionRepository>()
+      .items
+      .map(
+        (t) => Transaksi(
           judul: t.title,
           jumlah: t.amount,
           tipe: t.isIncome
@@ -32,16 +38,31 @@ List<Transaksi> get _semua => context
               : TipeTransaksi.pengeluaran,
           tanggal: t.date,
           kategori: t.category,
-        ))
-    .toList();
+        ),
+      )
+      .toList();
 
   double get _totalSaldo => _semua.fold(
-        0.0,
-        (sum, t) =>
-            sum + (t.tipe == TipeTransaksi.pemasukan ? t.jumlah : -t.jumlah),
-      );
+    0.0,
+    (sum, t) =>
+        sum + (t.tipe == TipeTransaksi.pemasukan ? t.jumlah : -t.jumlah),
+  );
 
   bool _masukPeriode(DateTime t) {
+    if (_rentang != null) {
+      final awal = DateTime(
+        _rentang!.start.year,
+        _rentang!.start.month,
+        _rentang!.start.day,
+      );
+      final akhirEksklusif = DateTime(
+        _rentang!.end.year,
+        _rentang!.end.month,
+        _rentang!.end.day + 1,
+      );
+      return !t.isBefore(awal) && t.isBefore(akhirEksklusif);
+    }
+
     final now = DateTime.now();
     final awalHari = DateTime(now.year, now.month, now.day);
     switch (_periode) {
@@ -62,11 +83,14 @@ List<Transaksi> get _semua => context
     return list;
   }
 
-  double _total(List<Transaksi> list, TipeTransaksi tipe) => list
-      .where((t) => t.tipe == tipe)
-      .fold(0.0, (sum, t) => sum + t.jumlah);
+  double _total(List<Transaksi> list, TipeTransaksi tipe) =>
+      list.where((t) => t.tipe == tipe).fold(0.0, (sum, t) => sum + t.jumlah);
 
   String get _labelPeriode {
+    if (_rentang != null) {
+      return '${tanggalPendek(_rentang!.start)} - ${tanggalPendek(_rentang!.end)}';
+    }
+
     switch (_periode) {
       case PeriodeFilter.hariIni:
         return 'hari ini';
@@ -77,14 +101,27 @@ List<Transaksi> get _semua => context
     }
   }
 
-void _bukaHalaman({required bool income}) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => AddTransactionPage(initialIsIncome: income),
-    ),
-  );
-}
+  Future<void> _pilihRentang() async {
+    final now = DateTime.now();
+    final hasil = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year - 10),
+      lastDate: now,
+      initialDateRange: _rentang,
+    );
+    if (hasil != null && mounted) {
+      setState(() => _rentang = hasil);
+    }
+  }
+
+  void _bukaHalaman({required bool income}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddTransactionPage(initialIsIncome: income),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,31 +166,67 @@ void _bukaHalaman({required bool income}) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Total Saldo',
-                      style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    'Total Saldo',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     rupiah(_totalSaldo),
                     style: const TextStyle(
-                        fontSize: 28, fontWeight: FontWeight.bold),
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 12),
-          SegmentedButton<PeriodeFilter>(
-            showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(
-                  value: PeriodeFilter.hariIni, label: Text('Hari ini')),
-              ButtonSegment(
-                  value: PeriodeFilter.mingguIni, label: Text('Minggu ini')),
-              ButtonSegment(
-                  value: PeriodeFilter.bulanIni, label: Text('Bulan ini')),
+          if (_rentang == null)
+            SegmentedButton<PeriodeFilter>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(
+                  value: PeriodeFilter.hariIni,
+                  label: Text('Hari ini'),
+                ),
+                ButtonSegment(
+                  value: PeriodeFilter.mingguIni,
+                  label: Text('Minggu ini'),
+                ),
+                ButtonSegment(
+                  value: PeriodeFilter.bulanIni,
+                  label: Text('Bulan ini'),
+                ),
+              ],
+              selected: {_periode},
+              onSelectionChanged: (s) => setState(() => _periode = s.first),
+            ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _pilihRentang,
+                  icon: const Icon(Icons.date_range),
+                  label: Text(
+                    _rentang == null
+                        ? 'Pilih rentang tanggal'
+                        : '${tanggalPendek(_rentang!.start)} - ${tanggalPendek(_rentang!.end)}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              if (_rentang != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Hapus filter rentang tanggal',
+                  onPressed: () => setState(() => _rentang = null),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
             ],
-            selected: {_periode},
-            onSelectionChanged: (s) => setState(() => _periode = s.first),
           ),
           const SizedBox(height: 12),
           Card(
@@ -162,8 +235,10 @@ void _bukaHalaman({required bool income}) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Ringkasan $_labelPeriode',
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Ringkasan $_labelPeriode',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -197,8 +272,10 @@ void _bukaHalaman({required bool income}) {
             ),
           ),
           const SizedBox(height: 12),
-          const Text('Transaksi terbaru',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text(
+            'Transaksi terbaru',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           if (data.isEmpty)
             const Padding(
@@ -213,26 +290,27 @@ void _bukaHalaman({required bool income}) {
   }
 
   Widget _legend(Color color, String label, String nilai) => Row(
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                Text(nilai,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-              ],
+    children: [
+      Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
-          ),
-        ],
-      );
+            Text(nilai, style: const TextStyle(fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    ],
+  );
 
   Widget _itemTransaksi(Transaksi t) {
     final masuk = t.tipe == TipeTransaksi.pemasukan;
@@ -241,8 +319,10 @@ void _bukaHalaman({required bool income}) {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: warna.withValues(alpha: 0.2),
-          child: Icon(masuk ? Icons.arrow_downward : Icons.arrow_upward,
-              color: warna),
+          child: Icon(
+            masuk ? Icons.arrow_downward : Icons.arrow_upward,
+            color: warna,
+          ),
         ),
         title: Text(t.judul),
         subtitle: Text(tanggalPendek(t.tanggal)),
@@ -286,8 +366,13 @@ class _DonutPainter extends CustomPainter {
     paint.color = incomeColor;
     canvas.drawArc(rect, -math.pi / 2, sweepIncome, false, paint);
     paint.color = expenseColor;
-    canvas.drawArc(rect, -math.pi / 2 + sweepIncome,
-        2 * math.pi - sweepIncome, false, paint);
+    canvas.drawArc(
+      rect,
+      -math.pi / 2 + sweepIncome,
+      2 * math.pi - sweepIncome,
+      false,
+      paint,
+    );
   }
 
   @override
